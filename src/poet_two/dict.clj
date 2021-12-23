@@ -2,6 +2,7 @@
   (:require
    [clj-http.client :as http]
    [clojure.string :as string]
+   [clojure.walk :as walk]
    [clojure.java.io :as io :refer (reader)]
    [poet-two.db :as db]
    [taoensso.carmine :as car :refer (wcar)]))
@@ -55,8 +56,8 @@
        (db/insert word)
        (println (str "entry for " (:word word) " exists...doing nothing"))))
    ;; next time:
-   ;; (take 1000 (drop 2500 WORDS)
-   (->> (map api-lookup (take 1000 (drop 1500 WORDS)))
+   ;; (take 1000 (drop 4500 WORDS)
+   (->> (map api-lookup (take 1000 (drop 3500 WORDS)))
         (filter valid-response?)
         (map process-response)
         flatten)))
@@ -64,22 +65,30 @@
 (def THE-DICT (db/get-all))
 (def WORD-COUNT (count THE-DICT))
 
+(defn trim-word-tag [s]
+  (apply str (take-while #(not (= \: %)) s)))
+
 (defn get-pos [pos]
-  (filter (fn [[k v]]
-            (= pos (:part-of-speech v)))
-          THE-DICT))
+  (map (fn [[word-key word-map]]
+         (merge {:key word-key}
+                (assoc word-map
+                       :word
+                       (trim-word-tag (:word word-map)))))
+       (filter (fn [[k v]]
+                 (= pos (:part-of-speech v)))
+               THE-DICT)))
 
 (defn get-nouns []
   (get-pos "noun"))
 
 (defn noun []
-  (first (shuffle (get-nouns))))
+  {:noun (first (shuffle (get-nouns)))})
 
 (defn get-verbs []
   (get-pos "verb"))
 
 (defn verb []
-  (first (shuffle (get-verbs))))
+  {:verb (first (shuffle (get-verbs)))})
 
 (defn get-adjectives []
   (get-pos "adjective"))
@@ -135,11 +144,28 @@
 (defn preposition []
   (first (shuffle (get-prepositions))))
 
+;; sticks a :position key in each of ms
+;; whose value is a zero-based index of
+;; the order in which it was processed
+(defn assign-positions [ms]
+  (into []
+        (map (fn [n]
+               (let [w (nth ms n)]
+                 ;;(println "n: " n)
+                 ;;(println "w: " w)
+                 (assoc w :position n)))
+             (range (count ms)))))
+
+(defn preposition* []
+  {:preposition*
+   (assign-positions (flatten (empty-or-many preposition 0.3)))})
+
 (defn get-phrasal-verbs []
   (get-pos "phrasal verb"))
 
 (defn phrasal-verb []
-  (first (shuffle (get-phrasal-verbs))))
+  {:phrasal-verb
+   (first (shuffle (get-phrasal-verbs)))})
 
 (defn get-french-phrases []
   (get-pos "French phrase"))
@@ -177,6 +203,12 @@
 (defn interjection []
   (first (shuffle (get-interjections))))
 
+(defn get-pluaral-nouns []
+  (get-pos "plural noun"))
+
+(defn plural-noun []
+  {:plural-noun (first (shuffle (get-pluaral-nouns)))})
+
 (defn random-word []
   (first (shuffle (seq THE-DICT))))
 
@@ -184,11 +216,118 @@
   (let [seen ["verb" "noun" "adjective" "biographical name" "idiom" "geographical name"
               "adverb" "prefix" "abbreviation" "noun phrase" "preposition" "phrasal verb"
               "French phrase" "conjunction" "adjective combining form" "auxiliary verb"
-              "Latin phrase" "interjection" nil]]
+              "Latin phrase" "interjection" "plural noun" nil]]
     (filter (fn [[k v]]
               (not-any? (fn [sw] (= sw (:part-of-speech v))) seen))
-            THE-DICT))
-  )
+            THE-DICT)))
+
+(defn rand-elt [elts]
+   (nth elts (rand-int (count elts))))
+
+(defn get-articles []
+  [{:key "a"
+    :word "a"
+    :part-of-speech "article"
+    :origin-date nil
+    :definitions ["used as a function word before singular nouns when the referent is unspecified"]}
+   {:key "the"
+    :word "the"
+    :part-of-speech "article"
+    :origin-date nil
+    :definitions ["used to indicate a person or thing that has already been mentioned or seen or is clearly understood from the situation"
+                  "used to refer to things or people that are common in daily life"
+                  "used to refer to things that occur in nature"]}])
+
+(defn article []
+  {:article (first (shuffle (get-articles)))})
+
+;; TODO
+;; get-pronouns, etc
+
+(defn spaces-to-dashes [s]
+  (clojure.string/replace s " " "-"))
+
+(def SUBJECTS [[article noun] [plural-noun]])
+(defn subject []
+  (let [phrase (reduce
+                merge
+                (map #(%) (rand-elt SUBJECTS)))
+        order (into [] (keys phrase))]
+    ;;(println phrase)
+    ;; (merge (reduce merge phrase)
+    ;;        {:order order})
+    (merge phrase
+           {:order order})))
+
+;;(def s (into {} (map (fn [m] [(keyword (:part-of-speech m)) m]) s)))
+(defn predicate []
+  (let [phrase (reduce
+                merge
+                (map #(%) (rand-elt PREDICATES)))
+        order (into [] (keys phrase))]
+    (merge phrase {:order order})))
+
+(defn walk-map-with-keys [f m ks]
+  (reduce merge (map (fn [k]
+                       {k (f (k m))})
+        ks)))
+
+;; TODO
+;; get smarter
+(defn pluralize [w]
+  (assoc w :word (str (:word w) "s")))
+
+;; could also pass in :order keys zipmapped w/ functions to be applied for each key
+(defn walk-sentence [f s]
+  (merge
+   (walk-map-with-keys f (:subject s) (get-in s [:subject :order]))
+   (walk-map-with-keys f (:predicate s) (get-in s [:predicate :order]))))
+
+(defn sentence-words [s]
+  (flatten
+   (cons (vals
+          (walk-map-with-keys #(:word %) (:subject s) (get-in s [:subject :order])))
+         (vals
+          (walk-map-with-keys #(:word %) (:predicate s) (get-in s [:predicate :order]))))))
+
+(defn print-sentence [s]
+  (let [words (sentence-words s)
+        first-word (clojure.string/capitalize (first words))
+        other-words (reduce (fn [this that]
+                              (if (nil? that)
+                                (str this)
+                                (str this " " that))) (rest words))]
+    (print (str first-word " "))
+    (print (str other-words "."))
+    (println)))
+
+(defn sentence []
+  {:subject (subject)
+   :predicate (predicate)})
+
+(defn weighted-choice [option-one option-two chance]
+  (if (< (rand) chance)
+    (option-one)
+    (option-two)))
+
+(defn conj-if-value [col nil-or-value]
+  (if (empty? nil-or-value)
+    col
+    (conj col nil-or-value)))
+
+(defn empty-or-many [f chance-for-empty]
+  (if (< chance-for-empty (rand))
+    []
+    (conj-if-value [(f)] (empty-or-many f chance-for-empty))))
+
+;; Sentence => Noun-Phrase + Verb-Phrase
+;; Noun-Phrase => Article + Adj* + Noun + PP* | Noun
+;; Verb-Phrase => Verb + Noun-Phrase
+;; Adj* => 0, Adj + Adj*
+;; PP* => 0, PP + PP*
+;; PP => Prep + Noun-Phrase
+;; Adj => big, little, blue, green
+;; Prep => to, in, by, with
 
 ;; a response from api-lookup has a :body
 ;; and that body is a LazySeq of matching words

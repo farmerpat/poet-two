@@ -12,6 +12,9 @@
 (defn insert [word]
   (wcar* (car/set (:word word) word)))
 
+(defn delete [word]
+  (wcar* (car/del word)))
+
 (defn get-all []
   (let [keys (wcar* (car/keys "*"))]
     (into {}
