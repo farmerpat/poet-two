@@ -259,6 +259,7 @@
     (merge phrase
            {:order order})))
 
+(def PREDICATES [[verb]])
 ;;(def s (into {} (map (fn [m] [(keyword (:part-of-speech m)) m]) s)))
 (defn predicate []
   (let [phrase (reduce
@@ -276,6 +277,9 @@
 ;; get smarter
 (defn pluralize [w]
   (assoc w :word (str (:word w) "s")))
+
+(def TENSES [:past :present :future])
+(defn tense [] (rand-elt TENSES))
 
 ;; could also pass in :order keys zipmapped w/ functions to be applied for each key
 (defn walk-sentence [f s]
@@ -301,9 +305,64 @@
     (print (str other-words "."))
     (println)))
 
+;; TODO
+;; more smarter
+;;
+;; In the future, there should be default "rules"
+;; specified by this function that are taken
+;; unless there is already a tense entry for the
+;; given word in the system, whatever that means.
+(defn text-word->past-tense [text]
+  (cond (= \e (last text))  (str text "d")
+        :else (str text "ed")))
+
+;; TODO
+;; more smarter
+(defn text-word->present-tense [text]
+  (str text "s"))
+
+(defn text-word->future-tense [text]
+  (str "will " text))
+
+(defn word->past-tense [word]
+  (let [transformed-text (text-word->past-tense (:word word))]
+    (assoc word :word transformed-text)))
+
+(defn word->present-tense [word]
+  (let [transformed-text (text-word->present-tense (:word word))]
+    (assoc word :word transformed-text)))
+
+(defn word->future-tense [word]
+  (let [transformed-text (text-word->future-tense (:word word))]
+    (assoc word :word transformed-text)))
+
+(defn tensify-word [word tense]
+  (case tense
+    :past (word->past-tense word)
+    :present (word->present-tense word)
+    :future (word->future-tense word)))
+
+(defn walk-sentence [f s]
+  (merge
+   (walk-map-with-keys f (:subject s) (get-in s [:subject :order]))
+   (walk-map-with-keys f (:predicate s) (get-in s [:predicate :order]))))
+
+(defn tensify-sentence [s tense]
+  (assoc s :predicate (merge (walk-map-with-keys
+                              (fn [w] (tensify-word w tense))
+                              (:predicate s)
+                              (get-in s [:predicate :order]))
+                             {:order (get-in s [:predicate :order])})))
+
 (defn sentence []
-  {:subject (subject)
-   :predicate (predicate)})
+  (let [tense (tense)
+        timestamp (db/generate-current-timestamp)
+        s (with-meta
+            {:subject (subject)
+             :predicate (predicate)}
+            {:timestamp timestamp
+             :tense tense})])
+  (tensify-sentence s tense))
 
 (defn weighted-choice [option-one option-two chance]
   (if (< (rand) chance)
