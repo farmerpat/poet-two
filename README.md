@@ -28,33 +28,26 @@ To connect to the browser repl via cider:
 ## Running with cider
 
     set cider/cider-nrepl version to 0.27.4 to deal w/ clojures complaints
-    cider-jack-in-clj&cljs
+    open emacs
+    cd to project root
+    open a .clj file
+    C-c M-j
     lein
-    shadow
-    :app
-
-    from the clj repl:
+    in cider repl:
     (ns poet-two.core)
     (-main)
-    (require '[shadow.cljs.devtools.server])
-    (shadow.cljs.devtools.server/start!)
+    (require '[shadow.cljs.devtools.server :as server])
+    (require '[shadow.cljs.devtools.api :as shadow])
+    (server/start!)
+    (shadow/watch :app)
+    open a .cljs file
+    cider-connect-cljs
+    localhost
+    7002
+    shadow
+    :app
+    Yahtzee
 
-    then from the cljs repl:
-    (do (require '[shadow.cljs.devtools.api :as shadow]) (shadow/watch :app) (shadow/nrepl-select :app))
-
-    that results in a working app
-    and C-c C-z works to switch between...but completion didn't work...
-
-    once I evaluated an s-expression with C-x C-e
-    from within a cljs file, cider completion began working.
-    But trying to say (js/alert "fyf") from cljs repl bombs with
-    "No such namespace js"
-
-    https://docs.cider.mx/cider/cljs/shadow-cljs.html
-    https://github.com/clojure-emacs/cider/issues/2946
-    https://shadow-cljs.github.io/docs/UsersGuide.html
-    https://shadow-cljs.github.io/docs/UsersGuide.html#embedded
-    may be worth investigating
 ## License
 
 Copyright © 2021 FIXME
