@@ -22,18 +22,18 @@
 
 (defn navbar [] 
   (r/with-let [expanded? (r/atom false)]
-              [:nav.navbar.is-dark>div.container
-               [:div.navbar-brand
-                [:a.navbar-item {:href "/" :style {:font-weight :bold}} "poet-two"]
-                [:span.navbar-burger.burger
-                 {:data-target :nav-menu
-                  :on-click #(swap! expanded? not)
-                  :class (when @expanded? :is-active)}
-                 [:span][:span][:span]]]
-               [:div#nav-menu.navbar-menu
-                {:class (when @expanded? :is-active)}
-                [:div.navbar-start
-                 [nav-link "#/" "Home" :home]]]]))
+    [:nav.navbar.is-dark>div.container
+     [:div.navbar-brand
+      [:a.navbar-item {:href "/" :style {:font-weight :bold}} "poet-two"]
+      [:span.navbar-burger.burger
+       {:data-target :nav-menu
+        :on-click #(swap! expanded? not)
+        :class (when @expanded? :is-active)}
+       [:span][:span][:span]]]
+     [:div#nav-menu.navbar-menu
+      {:class (when @expanded? :is-active)}
+      [:div.navbar-start
+       [nav-link "#/" "Home" :home]]]]))
 
 (defn generate-sentence-button []
   [:button
@@ -41,9 +41,7 @@
     :class "button"
     :on-click (fn [e]
                 (.preventDefault e)
-                (js/console.log "fyf!")
-                (rf/dispatch [:generate-sentence])
-                )}
+                (rf/dispatch [:generate-sentence]))}
    "Generate Sentence"])
 
 (defn save-sentence-button []
@@ -52,21 +50,37 @@
     :class "button"
     :on-click (fn [e]
                 (.preventDefault e)
-                (js/console.log "fyf a lot.")
                 (rf/dispatch [:save-sentence]))}
    "Save Sentence"])
 
-;; (defn home-page []
-;;   [:section.section>div.container>div.content
-;;    (when-let [docs @(rf/subscribe [:docs])]
-;;      [:div {:dangerouslySetInnerHTML {:__html (md->html docs)}}])])
+(defn sentence-extract-string [sentence]
+  (let [subject (:subject sentence)
+        predicate (:predicate sentence)
+        subject-order (:order subject)
+        predicate-order (:order predicate)]
+    (string/capitalize
+     (str
+      (string/trim
+       (str
+        (reduce str (map (fn [k] (str (:word (get subject k)) " ")) subject-order))
+        " "
+        (reduce str (map (fn [k] (str (:word (get predicate k)) " ")) predicate-order))))
+      "."))))
+
+(defn sentence []
+  (let [sub (rf/subscribe [:sentence])]
+    (fn []
+      (let [s @sub]
+        (if (nil? s)
+          [:div]
+          [:div (sentence-extract-string s)])))))
+
 (defn home-page []
   [:section.section>div.container>div.content
    [generate-sentence-button]
    [save-sentence-button]
    [:div#sentence-container
-    "The sentence will go here!"]
-   ])
+    [sentence]]])
 
 (defn page []
   (if-let [page @(rf/subscribe [:common/page])]
@@ -95,6 +109,7 @@
   (rf/clear-subscription-cache!)
   (rdom/render [#'page] (.getElementById js/document "app")))
 
+;; TODO: init-db where :sentence => nil
 (defn init! []
   (start-router!)
   (ajax/load-interceptors!)

@@ -1,6 +1,7 @@
 (ns poet-two.events
   (:require
     [re-frame.core :as rf]
+    [clojure.walk :as walk]
     [ajax.core :as ajax]
     [reitit.frontend.easy :as rfe]
     [reitit.frontend.controllers :as rfc]))
@@ -36,14 +37,23 @@
                  :on-success [:generate-sentence-success]
                  :on-failure [:ajax-failure]}}))
 
-;; just make sure that the sentence container watches this fucker.
+(defn keywordize-orders [s]
+  (let [sentence (:sentence s)
+        sub-orders (:order (:subject sentence))
+        pred-orders (:order (:predicate sentence))]
+    (merge
+     (assoc-in
+      (assoc-in sentence [:subject :order] (map keyword sub-orders))
+      [:predicate :order] (map keyword pred-orders))
+     {:info (:meta s)})))
+
 (rf/reg-event-db
  :generate-sentence-success
  (fn
    [db [_ res]]
-   (let [sentence (get res "sentence")]
-     (js/console.log "sentence: " sentence)
-     (assoc db :sentence sentence))))
+   (let [s (get res "sentence")
+         sentence (walk/keywordize-keys s)]
+     (assoc db :sentence (keywordize-orders sentence)))))
 
 (rf/reg-event-db
  :save-sentence-success
@@ -85,9 +95,14 @@
 ;;subscriptions
 
 (rf/reg-sub
-  :common/route
-  (fn [db _]
-    (-> db :common/route)))
+ :sentence
+ (fn [db _]
+   (:sentence db)))
+
+(rf/reg-sub
+ :common/route
+ (fn [db _]
+   (-> db :common/route)))
 
 (rf/reg-sub
   :common/page-id
