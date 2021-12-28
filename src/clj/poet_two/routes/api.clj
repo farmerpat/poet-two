@@ -8,13 +8,11 @@
    [ring.util.http-response :as response]))
 
 (defn sentence-generate [req]
-  (let [sentence (dict/sentence)
-        sentence-and-meta {:sentence sentence
-                           :meta (meta sentence)}]
-    (response/ok {:sentence sentence-and-meta})))
+  (response/ok {:sentence (dict/sentence)}))
 
 (defn sentence-save [req]
-  (let [sentence (:sentence (:params req))]
+  (let [sentence (:sentence (:params req))
+        ts (:timestamp (:info sentence))]
     (println "HERE'S da sentence:")
     (println sentence)
     (response/ok {:save-success true})))

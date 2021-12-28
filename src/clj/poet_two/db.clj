@@ -43,7 +43,7 @@
 (defn sentence-insert [s]
   (wcar*
    (car/select SENTENCE-DB)
-   (car/set (:timestamp (meta s)) s)))
+   (car/set (:timestamp (:info s)) s)))
 
 (defn sentence-delete [time-stamp]
   (wcar*

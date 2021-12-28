@@ -37,15 +37,12 @@
                  :on-success [:generate-sentence-success]
                  :on-failure [:ajax-failure]}}))
 
-(defn keywordize-orders [s]
-  (let [sentence (:sentence s)
-        sub-orders (:order (:subject sentence))
+(defn keywordize-orders [sentence]
+  (let [sub-orders (:order (:subject sentence))
         pred-orders (:order (:predicate sentence))]
-    (merge
-     (assoc-in
+    (assoc-in
       (assoc-in sentence [:subject :order] (map keyword sub-orders))
-      [:predicate :order] (map keyword pred-orders))
-     {:info (:meta s)})))
+      [:predicate :order] (map keyword pred-orders))))
 
 (rf/reg-event-db
  :generate-sentence-success
@@ -53,6 +50,8 @@
    [db [_ res]]
    (let [s (get res "sentence")
          sentence (walk/keywordize-keys s)]
+     (js/console.log "got a generated sentence: ")
+     (js/console.log s)
      (assoc db :sentence (keywordize-orders sentence)))))
 
 (rf/reg-event-db

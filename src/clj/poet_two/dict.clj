@@ -376,11 +376,10 @@
 (defn sentence []
   (let [tense (tense)
         timestamp (db/generate-current-timestamp)
-        s (with-meta
-            {:subject (subject)
-             :predicate (predicate)}
-            {:timestamp timestamp
-             :tense tense})]
+        s {:subject (subject)
+           :predicate (predicate)
+           :info {:timestamp timestamp
+                  :tense tense}}]
     (tensify-sentence s tense)))
 
 ;; Sentence => Noun-Phrase + Verb-Phrase
