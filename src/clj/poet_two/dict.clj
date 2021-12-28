@@ -333,6 +333,9 @@
 ;; given word in the system, whatever that means.
 (defn text-word->past-tense [text]
   (cond (= \e (last text))  (str text "d")
+        (= \y (last text)) (str (reduce
+                                 str
+                                 (drop-last text)) "ied")
         :else (str text "ed")))
 
 ;; TODO

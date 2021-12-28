@@ -57,6 +57,9 @@
          (sentence-delete ts))
        time-stamps))
 
+;; e.g.
+;; (map (fn [s]
+;;   (poet-two.dict/print-sentence s)) (sentence-get-all))
 (defn sentence-get-all []
   (wcar* (car/select SENTENCE-DB))
   (let [keys (wcar* (car/keys "*"))]
