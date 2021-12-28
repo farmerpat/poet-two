@@ -1,44 +1,77 @@
 # poet-two
 
-FIXME: description
+generated using Luminus version "4.29"
+a la
+lein new luminus poet-three +re-frame +shadow-cljs
 
-## Installation
+FIXME
 
-Download from http://example.com/FIXME.
+## Prerequisites
 
-## Usage
+You will need [Leiningen][1] 2.0 or above installed.
 
-FIXME: explanation
+[1]: https://github.com/technomancy/leiningen
 
-    $ java -jar poet-two-0.1.0-standalone.jar [args]
+## Running
 
-## Options
+To start a web server for the application, run:
 
-FIXME: listing of options this app accepts.
+    lein run
+    npm install -g shadow-cljs
+    npm install
+    npx shadow-cljs watch app
 
-## Examples
+## Running with cider
 
-...
+### Now (was hamstrung by CFTBAT. Blew out .emacs.d and started from scratch):
+```code
+    C-c C-x j m -> shadow-cljs -> shadow -> :app
+```
 
-### Bugs
+	In clj repl:
+```code
+	(in-ns 'poet-two.core)
+	(-main)
+```
 
-...
+### Used to be:
 
-### Any Other Sections
-### That You Think
-### Might be Useful
+	set cider/cider-nrepl version to 0.27.4 to deal w/ clojures complaints
+    open emacs
+    cd to project root
+    open a .clj file
+    C-c M-j
+    lein
+    in cider repl:
+    (in-ns poet-two.core)
+    (-main)
+    (require '[shadow.cljs.devtools.server :as server])
+    (require '[shadow.cljs.devtools.api :as shadow])
+    (server/start!)
+    (shadow/watch :app)
+    open a .cljs file
+    cider-connect-cljs
+    localhost
+    7002
+    shadow
+    :app
+
+    NOTE:
+    Actually. Both clj and cljs repls think that the
+    last repl buffer to have been visited is the correct
+    one.
+    https://github.com/clojure-emacs/cider/issues/2351
+
+    But by https://github.com/clojure-emacs/cider/issues/2547
+    maybe I'm doing it wrong...
+    Perhaps
+    C-c C-x j m -> shadow-cljs -> shadow -> :app
+
+	Too many hours later, finally saw:
+	...[WARNING]
+	something in your configuration activated clojure-mode instead of clojurescript-mode
+	this could cause problems....
 
 ## License
 
 Copyright © 2021 FIXME
-
-This program and the accompanying materials are made available under the
-terms of the Eclipse Public License 2.0 which is available at
-http://www.eclipse.org/legal/epl-2.0.
-
-This Source Code may also be made available under the following Secondary
-Licenses when the conditions for such availability set forth in the Eclipse
-Public License, v. 2.0 are satisfied: GNU General Public License as published by
-the Free Software Foundation, either version 2 of the License, or (at your
-option) any later version, with the GNU Classpath Exception which is available
-at https://www.gnu.org/software/classpath/license.html.

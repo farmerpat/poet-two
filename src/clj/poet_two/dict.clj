@@ -5,7 +5,8 @@
    [clojure.walk :as walk]
    [clojure.java.io :as io :refer (reader)]
    [poet-two.db :as db]
-   [taoensso.carmine :as car :refer (wcar)]))
+   ;;[taoensso.carmine :as car :refer (wcar)]
+   ))
 
 ;; dictionary
 (def API-KEY "024844f0-9923-4097-a0cf-c71d87a79b6f")
@@ -13,6 +14,23 @@
 (def THE-KEY "4f66e758-7105-411d-9a61-0da4f5df35bf")
 
 (def BASE-URL "https://www.dictionaryapi.com/api/v3/references/collegiate/json/")
+
+;; TODO?
+;; poet-two.util
+(defn weighted-choice [option-one option-two chance]
+  (if (< (rand) chance)
+    (option-one)
+    (option-two)))
+
+(defn conj-if-value [col nil-or-value]
+  (if (empty? nil-or-value)
+    col
+    (conj col nil-or-value)))
+
+(defn empty-or-many [f chance-for-empty]
+  (if (< chance-for-empty (rand))
+    []
+    (conj-if-value [(f)] (empty-or-many f chance-for-empty))))
 
 (defn get-words []
   (map
@@ -49,11 +67,11 @@
       :definitions (:shortdef w)})
    (:body res)))
 
-(defn main []
+(defn not-main []
   (map
    (fn [word]
-     (if (nil? (db/search (:word word)))
-       (db/insert word)
+     (if (nil? (db/word-search (:word word)))
+       (db/word-insert word)
        (println (str "entry for " (:word word) " exists...doing nothing"))))
    ;; next time:
    ;; (take 1000 (drop 4500 WORDS)
@@ -62,7 +80,8 @@
         (map process-response)
         flatten)))
 
-(def THE-DICT (db/get-all))
+
+(def THE-DICT (db/word-get-all))
 (def WORD-COUNT (count THE-DICT))
 
 (defn trim-word-tag [s]
@@ -357,27 +376,11 @@
 (defn sentence []
   (let [tense (tense)
         timestamp (db/generate-current-timestamp)
-        s (with-meta
-            {:subject (subject)
-             :predicate (predicate)}
-            {:timestamp timestamp
-             :tense tense})])
-  (tensify-sentence s tense))
-
-(defn weighted-choice [option-one option-two chance]
-  (if (< (rand) chance)
-    (option-one)
-    (option-two)))
-
-(defn conj-if-value [col nil-or-value]
-  (if (empty? nil-or-value)
-    col
-    (conj col nil-or-value)))
-
-(defn empty-or-many [f chance-for-empty]
-  (if (< chance-for-empty (rand))
-    []
-    (conj-if-value [(f)] (empty-or-many f chance-for-empty))))
+        s {:subject (subject)
+           :predicate (predicate)
+           :info {:timestamp timestamp
+                  :tense tense}}]
+    (tensify-sentence s tense)))
 
 ;; Sentence => Noun-Phrase + Verb-Phrase
 ;; Noun-Phrase => Article + Adj* + Noun + PP* | Noun
