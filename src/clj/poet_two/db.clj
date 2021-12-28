@@ -60,6 +60,15 @@
 ;; e.g.
 ;; (map (fn [s]
 ;;   (poet-two.dict/print-sentence s)) (sentence-get-all))
+
+;; TODO:
+;; It's possibly that if somehow this
+;; returned a lazy seq and if a caller
+;; could return early on some condition,
+;; that something like get-sentence-where
+;; could be written...
+;; maybe redis + immutable DS is quick enough
+;; maybe a sql is better.
 (defn sentence-get-all []
   (wcar* (car/select SENTENCE-DB))
   (let [keys (wcar* (car/keys "*"))]

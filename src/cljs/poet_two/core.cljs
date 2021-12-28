@@ -67,13 +67,46 @@
         (reduce str (map (fn [k] (str (:word (get predicate k)) " ")) predicate-order))))
       "."))))
 
+(defn sentence-subject [s]
+  [:div.subject
+   "Subject: "
+   [:span {:style
+           {:text-decoration "green wavy underline"}}
+    (string/capitalize
+     (string/join
+      " "
+      (map (fn [k]
+             (str (:word (get (:subject s) k )) ))
+           (:order (:subject s)))))]])
+
+(defn sentence-predicate [s]
+  [:div.predicate
+   "Predicate: "
+   [:span {:style
+           {:text-decoration "green wavy underline"}}
+    (string/capitalize
+     (string/join
+      " "
+      (map (fn [k]
+             (str (:word (get (:predicate s) k )) ))
+           (:order (:predicate s)))))]])
+
+;; TODO
+;; Probably ought to create visual containers
+;; for each part of speech.
+;; Probably want a "show details" checkbox
+;; or some such control.
 (defn sentence []
   (let [sub (rf/subscribe [:sentence])]
     (fn []
       (let [s @sub]
         (if (nil? s)
-          [:div]
-          [:div (sentence-extract-string s)])))))
+          [:div.empty-sentence]
+          (do
+            [:div (sentence-extract-string s)
+             [:div.sentence-structure
+              [sentence-subject s]
+              [sentence-predicate s]]]))))))
 
 (defn home-page []
   [:section.section>div.container>div.content
