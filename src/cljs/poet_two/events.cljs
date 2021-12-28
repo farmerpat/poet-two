@@ -1,10 +1,11 @@
 (ns poet-two.events
   (:require
-    [re-frame.core :as rf]
-    [clojure.walk :as walk]
-    [ajax.core :as ajax]
-    [reitit.frontend.easy :as rfe]
-    [reitit.frontend.controllers :as rfc]))
+   [poet-two.util :refer [keywordize-orders]]
+   [re-frame.core :as rf]
+   [clojure.walk :as walk]
+   [ajax.core :as ajax]
+   [reitit.frontend.easy :as rfe]
+   [reitit.frontend.controllers :as rfc]))
 
 (rf/reg-event-db
  :ajax-failure
@@ -21,7 +22,7 @@
      {:http-xhrio {:method :get
                    :uri "/api/sentence/save"
                    :params {:sentence s}
-                   :request-format (ajax/json-request-format)
+                   :request-format (ajax/json-request-format {:keywords true})
                    :response-format (ajax/json-response-format {:keywords true})
                    :on-success [:save-sentence-success]
                    :on-failure [:ajax-failure]}})))
@@ -36,13 +37,6 @@
                  :response-format (ajax/json-response-format {:keywords true})
                  :on-success [:generate-sentence-success]
                  :on-failure [:ajax-failure]}}))
-
-(defn keywordize-orders [sentence]
-  (let [sub-orders (:order (:subject sentence))
-        pred-orders (:order (:predicate sentence))]
-    (assoc-in
-      (assoc-in sentence [:subject :order] (map keyword sub-orders))
-      [:predicate :order] (map keyword pred-orders))))
 
 (rf/reg-event-db
  :generate-sentence-success
