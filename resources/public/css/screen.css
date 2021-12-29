@@ -33,3 +33,63 @@ body {
   -moz-osx-font-smoothing: grayscale;
 }
 
+.controls-container {
+    display: flex;
+    justify-content: center;
+}
+
+#sentence-container {
+    margin: 2%;
+}
+
+.sentence-structure {
+    display: flex;
+    flex-direction: column;
+}
+
+.subject {
+    justify-content: center;
+    display: flex;
+    flex-direction: column;
+    border: solid black 1px;
+    margin: 1%;
+    padding: 1%;
+}
+
+.predicate {
+    justify-content: center;
+    display: flex;
+    flex-direction: column;
+    border: solid black 1px;
+    margin: 1%;
+    padding: 1%;
+}
+
+.part-of-speech-container {
+    display: flex;
+    justify-content: center;
+}
+
+.part-of-sentence-description {
+    text-align: center;
+}
+
+.word-part-of-speech {
+    color: green;
+    border-bottom: solid black 1px;
+    text-align: center;
+}
+
+/*.predicate .part-of-speech-container .word {*/
+.part-of-speech-container .word {
+    display: flex;
+    flex-direction: column;
+    border: solid black 1px;
+    margin: 1%;
+    padding: 5%;
+}
+
+.predicate .word-text {
+    /* flex-grow: 1; */
+    flex-basis: fit-content;
+}

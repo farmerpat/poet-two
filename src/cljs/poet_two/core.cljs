@@ -69,27 +69,29 @@
 
 (defn sentence-subject [s]
   [:div.subject
-   "Subject: "
-   [:span {:style
-           {:text-decoration "green wavy underline"}}
-    (string/capitalize
-     (string/join
-      " "
-      (map (fn [k]
-             (str (:word (get (:subject s) k )) ))
-           (:order (:subject s)))))]])
+   [:div.part-of-sentence-description "Subject"]
+   [:div.part-of-speech-container
+     (map (fn [k]
+            (let [word (get (:subject s) k)
+                  pos (:part-of-speech word)
+                  text-word (:word word)]
+              [:div.word
+               [:div.word-part-of-speech pos]
+               [:div.word-text text-word]]))
+          (:order (:subject s)))]])
 
 (defn sentence-predicate [s]
   [:div.predicate
-   "Predicate: "
-   [:span {:style
-           {:text-decoration "green wavy underline"}}
-    (string/capitalize
-     (string/join
-      " "
-      (map (fn [k]
-             (str (:word (get (:predicate s) k )) ))
-           (:order (:predicate s)))))]])
+   [:div.part-of-sentence-description "Predicate"]
+   [:div.part-of-speech-container
+     (map (fn [k]
+            (let [word (get (:predicate s) k)
+                  pos (:part-of-speech word)
+                  text-word (:word word)]
+              [:div.word
+               [:div.word-part-of-speech pos]
+               [:div.word-text text-word]]))
+          (:order (:predicate s)))]])
 
 ;; TODO
 ;; Probably ought to create visual containers
@@ -110,8 +112,9 @@
 
 (defn home-page []
   [:section.section>div.container>div.content
+   [:div.controls-container
    [generate-sentence-button]
-   [save-sentence-button]
+   [save-sentence-button]]
    [:div#sentence-container
     [sentence]]])
 
