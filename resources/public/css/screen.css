@@ -89,7 +89,10 @@ body {
     padding: 5%;
 }
 
+.word-text {
+    text-align: center;
+}
+
 .predicate .word-text {
-    /* flex-grow: 1; */
     flex-basis: fit-content;
 }

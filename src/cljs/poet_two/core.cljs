@@ -71,27 +71,29 @@
   [:div.subject
    [:div.part-of-sentence-description "Subject"]
    [:div.part-of-speech-container
-     (map (fn [k]
-            (let [word (get (:subject s) k)
-                  pos (:part-of-speech word)
-                  text-word (:word word)]
-              [:div.word
-               [:div.word-part-of-speech pos]
-               [:div.word-text text-word]]))
-          (:order (:subject s)))]])
+    (map (fn [k]
+           (let [word (get (:subject s) k)
+                 key (:key word)
+                 pos (:part-of-speech word)
+                 text-word (:word word)]
+             [:div.word {:key key}
+              [:div.word-part-of-speech pos]
+              [:div.word-text text-word]]))
+         (:order (:subject s)))]])
 
 (defn sentence-predicate [s]
   [:div.predicate
    [:div.part-of-sentence-description "Predicate"]
    [:div.part-of-speech-container
-     (map (fn [k]
-            (let [word (get (:predicate s) k)
-                  pos (:part-of-speech word)
-                  text-word (:word word)]
-              [:div.word
-               [:div.word-part-of-speech pos]
-               [:div.word-text text-word]]))
-          (:order (:predicate s)))]])
+    (map (fn [k]
+           (let [word (get (:predicate s) k)
+                 key (:key word)
+                 pos (:part-of-speech word)
+                 text-word (:word word)]
+             [:div.word {:key key}
+              [:div.word-part-of-speech pos]
+              [:div.word-text text-word]]))
+         (:order (:predicate s)))]])
 
 ;; TODO
 ;; Probably ought to create visual containers
