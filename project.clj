@@ -5,10 +5,15 @@
 
   :dependencies [[ch.qos.logback/logback-classic "1.2.7"]
                  [clj-http "3.12.3"]
-                 ;; I think carmine is the problem...
+                 ;; TODO: ultimately rm if unused
                  [com.taoensso/carmine "3.1.0"]
                  [cljs-ajax "0.8.4"]
                  [clojure.java-time "0.3.3"]
+                 [com.github.seancorfield/next.jdbc "1.2.761"]
+                 [com.github.seancorfield/honeysql "2.2.840"]
+                 [org.xerial/sqlite-jdbc "3.36.0"]
+                 ;; TODO: ultimately rm if unused
+                 [org.clojure/data.xml "0.0.8"]
                  [com.cognitect/transit-clj "1.0.324"]
                  [com.cognitect/transit-cljs "0.8.269"]
                  [cprop "0.1.19"]
